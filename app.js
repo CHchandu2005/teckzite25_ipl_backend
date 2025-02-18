@@ -24,6 +24,10 @@ app.use(
 app.use('/auth', authrouter);
 app.use('/api', apirouter);
 
+app.get('/',(req,res)=>{
+  return res.json({message:'Welcome to the server'});
+})
+
 // Create an HTTP server to combine Express and WebSocket on the same port
 const server = http.createServer(app);
 
