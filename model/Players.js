@@ -16,17 +16,17 @@ const playerSchema = new mongoose.Schema({
     "role": {
         type: String, 
         required: true,
-        enum:{
-            values:["batsman","bowler","wicketkeeper","allrounder"],
-            message:"The player must be either batsman or bowler or wicketkeeper or allrounder"
-        }
+        // enum:{
+        //     values:["batsman","bowler","wicketkeeper","allrounder"],
+        //     message:"The player must be either batsman or bowler or wicketkeeper or allrounder"
+        // }
     },
     "runs": {
         type: Number,
         required: false
     },
     "wickets": {
-        type: Number,
+        type: String,
         required: false
     },
     "set":{

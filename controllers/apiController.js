@@ -569,13 +569,107 @@ const deletePlayer = async (req, res) => {
   }
 };
 
+// const addset = async (req, res) => {
+//   try {
+//     console.log("add set function started");
+
+//     const { setname, setno } = req.body;
+//     console.log("Set Name:", setname);
+//     console.log("Set Number:", setno);
+
+//     if (!req.file || !req.file.buffer) {
+//       console.log("No file uploaded");
+//       return res.status(400).json({ message: "No file uploaded" });
+//     }
+
+//     const workbook = new ExcelJS.Workbook();
+//     await workbook.xlsx.load(req.file.buffer);
+
+//     const players = [];
+//     // const validRoles = ["batsman", "bowler", "wicketkeeper", "allrounder"];
+
+//     workbook.eachSheet((worksheet, sheetId) => {
+//       console.log(`Processing Sheet ${sheetId}: ${worksheet.name}`);
+
+//       let headers = [];
+//       worksheet.eachRow((row, rowNumber) => {
+//         if (rowNumber === 1) {
+//           headers = row.values.map((val) => val?.toString().trim().toLowerCase()); // Extract header row
+//           return;
+//         }
+
+//         const playerData = {};
+//         row.eachCell((cell, colNumber) => {
+//           const key = headers[colNumber]; 
+//           console.log("key"+key)
+//           if (key) playerData[key] = cell.value;
+          
+//         });
+        
+       
+//         // Convert & validate values
+
+
+//         // console.log("Players data:",playerData);
+//         playerData.age = parseInt(playerData.age, 10);
+//         // console.log("age"+playerData.age)
+//         playerData.runs = playerData.runs ? parseInt(playerData.runs, 10) : undefined;
+//         playerData.wickets = playerData.wickets ? parseInt(playerData.wickets, 10) : undefined;
+//         playerData.set = playerData["set no."]?parseInt(playerData["set no."], 10):0;
+//         playerData.isDebut = playerData.isdebut?.toString().trim().toUpperCase() === "TRUE";
+//         playerData.basePrice = playerData["base price"] ? parseInt(playerData["base price"], 10) : 50000;
+//         playerData.bidplace = playerData["s.no"]? parseInt(playerData["s.no"], 10) : undefined;
+//         playerData.setname = "set"+parseInt(playerData["s.no"], 10);
+//         playerData.role = playerData.specialism ? String(playerData.specialism).toLowerCase() : "";
+//         playerData.strikeRate=playerData.strikerate?String(playerData.strikerate):"";
+//         playerData.nationality=playerData.country?String(playerData.country):undefined;
+//         playerData.name=playerData["first name"]&&playerData.surname?String(playerData["first name"]+playerData.surname):undefined;
+//       //  console.log(playerData.name,playerData.nationality,playerData.age,playerData.role)
+//         // Validate required fields
+//         // if (!playerData.name || !playerData.nationality || isNaN(playerData.age) || !playerData.role) {
+//         //   console.log(`Skipping row ${rowNumber} in sheet ${worksheet.name} due to missing data`);
+//         //   return;
+//         // }
+
+//         // if (!validRoles.includes(playerData.role)) {
+//         //   console.log(`Invalid role in row ${rowNumber}, sheet ${worksheet.name}: ${playerData.role}`);
+//         //   return;
+//         // }
+       
+//         players.push(playerData);
+//       });
+//     });
+
+//     console.log(`Total players parsed: ${players.length}`);
+
+//     // console.log("Total players data:",players);
+
+//     if (players.length > 0) {
+//       await Player.insertMany(players);
+//       console.log(`${players.length} players inserted into the database.`);
+//     }
+
+//     res.status(200).json({
+//       message: "Data received successfully and inserted into the database",
+//       data: {
+//         setname,
+//         setno,
+//         file: req.file.originalname,
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Error in add set function:", error);
+//     res.status(500).json({ message: "Internal Server Error" });
+//   }
+// };
+
 const addset = async (req, res) => {
   try {
-    console.log("add set function started");
+    console.log("addset function started");
 
     const { setname, setno } = req.body;
-    console.log("Set Name:", setname);
-    console.log("Set Number:", setno);
+    console.log("Set Name:", setname || "N/A");
+    console.log("Set Number:", setno || "N/A");
 
     if (!req.file || !req.file.buffer) {
       console.log("No file uploaded");
@@ -586,73 +680,99 @@ const addset = async (req, res) => {
     await workbook.xlsx.load(req.file.buffer);
 
     const players = [];
-    const validRoles = ["batsman", "bowler", "wicketkeeper", "allrounder"];
-
     workbook.eachSheet((worksheet, sheetId) => {
       console.log(`Processing Sheet ${sheetId}: ${worksheet.name}`);
 
       let headers = [];
       worksheet.eachRow((row, rowNumber) => {
         if (rowNumber === 1) {
-          headers = row.values.map((val) => val?.toString().trim().toLowerCase()); // Extract header row
+          headers = row.values
+            .map((val) =>
+              val && typeof val === "object" && val.text
+                ? val.text.toString().trim().toLowerCase()
+                : val
+                ? val.toString().trim().toLowerCase()
+                : ""
+            )
+            .filter(Boolean);
           return;
         }
+
+        // console.log("Headers:", headers);
 
         const playerData = {};
         row.eachCell((cell, colNumber) => {
-          const key = headers[colNumber]; 
-          if (key) playerData[key] = cell.value;
-          
+          const key = headers[colNumber - 1];
+          if (key) {
+            playerData[key] = cell.value ? cell.value.toString().trim() : "";
+          }
         });
-        
-        
-        // Convert & validate values
-        playerData.age = parseInt(playerData.age, 10);
-        playerData.runs = playerData.runs ? parseInt(playerData.runs, 10) : undefined;
-        playerData.wickets = playerData.wickets ? parseInt(playerData.wickets, 10) : undefined;
-        playerData.set = parseInt(setno, 10);
-        playerData.isDebut = playerData.isdebut?.toString().trim().toUpperCase() === "TRUE";
-        playerData.basePrice = playerData.baseprice ? parseInt(playerData.baseprice, 10) : 50000;
-        playerData.bidplace = playerData.bidplace ? parseInt(playerData.bidplace, 10) : undefined;
-        playerData.setname = setname;
-        playerData.role = playerData.role ? String(playerData.role).toLowerCase() : "";
-        playerData.strikeRate=playerData.strikerate?String(playerData.strikerate):"";
-       console.log(playerData.name,playerData.nationality,playerData.age,playerData.role)
-        // Validate required fields
-        if (!playerData.name || !playerData.nationality || isNaN(playerData.age) || !playerData.role) {
-          console.log(`Skipping row ${rowNumber} in sheet ${worksheet.name} due to missing data`);
-          return;
-        }
+        const player = {};
 
-        if (!validRoles.includes(playerData.role)) {
-          console.log(`Invalid role in row ${rowNumber}, sheet ${worksheet.name}: ${playerData.role}`);
-          return;
-        }
-        console.log(playerData)
-        players.push(playerData);
+        // // Convert necessary fields to numbers and set defaults
+        // player.age = parseInt(playerData.age, 10) || 0;
+        // player.runs = parseInt(playerData.runs, 10) || 0;
+        // player.wickets = parseInt(playerData.wickets, 10) || 0;
+        // player.set = parseInt(playerData["set no."], 10) || (setno ? parseInt(setno, 10) : 0);
+        // player.basePrice = parseInt(playerData["base price"], 10) || 50000;
+        // player.bidplace = playerData["s.no"] ? parseInt(playerData["s.no"], 10) : undefined;
+        // player.setname = `set${playerData.set || (setname ? setname.toString() : "unknown")}`;
+        // player.role = playerData.specialism ? playerData.specialism.toLowerCase() : "unknown";
+        // player.strikeRate = playerData["strike rate"] ? playerData["strike rate"].toString() : "";
+        // player.nationality = playerData.country ? playerData.country.toString() : "unknown";
+        // player.name = `${playerData["first name"]} ${playerData.surname}`; // Static name assignment
+        // player.average = playerData.avg ? playerData.avg.toString() : "";
+        // console.log("Player economy:",playerData.economy);
+        // player.economy = playerData.economy?playerData.economy.toString():"NA";
+        // console.log("SIngle player data and row number:",player," ",rowNumber);
+
+
+        // Convert necessary fields to numbers and set defaults
+player.age = playerData.age ? parseInt(playerData.age, 10) || 0 : 0;
+player.runs = playerData.runs ? parseInt(playerData.runs, 10) || 0 : 0;
+player.wickets = playerData.wickets ? parseInt(playerData.wickets, 10) || 0 : 0;
+player.set = playerData["set no."] ? parseInt(playerData["set no."], 10) || (setno ? parseInt(setno, 10) : 0) : (setno ? parseInt(setno, 10) : 0);
+player.basePrice = playerData["base price"] ? parseInt(playerData["base price"], 10) || 50000 : 50000;
+player.bidplace = playerData["s.no"] ? parseInt(playerData["s.no"], 10) : undefined;
+player.setname = `set${player.set || (setname ? setname.toString() : "unknown")}`;
+player.role = playerData.specialism ? playerData.specialism.toLowerCase() : "unknown";
+player.strikeRate = playerData["strike rate"] ? playerData["strike rate"].toString() : "N/A";
+player.nationality = playerData.country ? playerData.country.toString() : "unknown";
+player.name = playerData["first name"] && playerData.surname ? `${playerData["first name"]} ${playerData.surname}` : "Unknown Player";
+player.average = playerData.avg ? playerData.avg.toString() : "N/A";
+
+console.log("Player economy:", playerData.economy);
+player.economy = playerData.economy ? playerData.economy.toString() : "N/A";
+
+// console.log("Single player data and row number:", player, rowNumber);
+
+        players.push(player);
       });
     });
 
     console.log(`Total players parsed: ${players.length}`);
 
     if (players.length > 0) {
-      await Player.insertMany(players);
-      console.log(`${players.length} players inserted into the database.`);
+      try {
+        const result = await Player.insertMany(players, { ordered: false });
+        console.log(`${result.length} players inserted into the database.`);
+      } catch (dbError) {
+        console.error("Error inserting players:", dbError);
+        return res.status(500).json({ message: "Database insertion error", error: dbError.message });
+      }
     }
 
     res.status(200).json({
-      message: "Data received successfully and inserted into the database",
-      data: {
-        setname,
-        setno,
-        file: req.file.originalname,
-      },
+      message: "Data processed successfully and inserted into the database",
+      insertedPlayers: players.length,
+      file: req.file.originalname,
     });
   } catch (error) {
-    console.error("Error in add set function:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error in addset function:", error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
+
 
 const playerinfo = async (req, res) => {
   try {
