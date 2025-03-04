@@ -16,10 +16,10 @@ const playerSchema = new mongoose.Schema({
     "role": {
         type: String, 
         required: true,
-        // enum:{
-        //     values:["batsman","bowler","wicketkeeper","allrounder"],
-        //     message:"The player must be either batsman or bowler or wicketkeeper or allrounder"
-        // }
+        enum:{
+            values:["batsman","bowler","wicketkeeper","allrounder"],
+            message:"The player must be either batsman or bowler or wicketkeeper or allrounder"
+        }
     },
     "runs": {
         type: Number,
@@ -64,9 +64,9 @@ const playerSchema = new mongoose.Schema({
 
     "soldAmount":{
         type:Number,
-        default:function(){
-            return this.basePrice
-        }
+        // default:function(){
+        //     return this.basePrice
+        // }
     },
     "bidplace":{
         type:Number,
@@ -85,12 +85,5 @@ const playerSchema = new mongoose.Schema({
       default:false
     },
 });
-
-playerSchema.pre('save', function(next) {
-    this.soldAmount=this.basePrice
-    next();
-});
-
-
 const Player = mongoose.model('Player', playerSchema);
 module.exports = Player

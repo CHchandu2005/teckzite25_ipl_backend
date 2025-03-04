@@ -363,25 +363,81 @@ const createTeam = async (req, res) => {
     }
   };
   
-
-
 const bid = async (req, res) => {
-  console.log("in bid fn");
+  console.log("In bid function");
+
   const { teamName, playerId, biddingAmount } = req.body;
-  console.log(teamName, playerId, biddingAmount);
-  
+  console.log("Bid details:", teamName, playerId, biddingAmount);
+
   try {
-    const player = await Player.findById({ _id: playerId });
+    // Find the team
+    const team = await Team.findOne({ teamID: teamName });
+    if (!team) {
+      return res.status(404).json({ error: "Team not found." });
+    }
+
+    // Find the player
+    const player = await Player.findById(playerId);
+    if (!player) {
+      return res.status(404).json({ error: "Player not found." });
+    }
+
+    // Check if player is already sold
     if (player.isSold) {
       return res.status(400).json({ error: "Player already sold." });
     }
-    const updatedTeam = await Team.handleBid(teamName, playerId, biddingAmount);
-    console.log(updatedTeam);
-    res.status(200).json({ message: "Bid successful", team: updatedTeam });
+
+    // Check if the player is already in the team
+    if (team.players.some(id => id.toString() === playerId.toString())) {
+      return res.status(400).json({ error: "Player already present in the team." });
+    }
+
+    // Check if the team has enough balance
+    if (team.remainingPurse < biddingAmount) {
+      return res.status(400).json({ error: "Insufficient balance to buy this player." });
+    }
+
+    // Deduct the bidding amount
+    team.remainingPurse -= biddingAmount;
+    team.players.push(playerId);
+
+    // Update the team's player count based on role
+    if (player.role === "batsman") {
+      team.batsmen += 1;
+    } else if (player.role === "bowler") {
+      team.bowlers += 1;
+    } else if (player.role === "allrounder") {
+      team.allrounder += 1;
+    } else if (player.role === "wicketkeeper") {
+      team.wicketkeeper += 1;
+    }
+
+    // Update player details
+    player.soldAmount = biddingAmount;
+    player.isSold = true;
+    player.soldTeam = teamName;
+
+    // Ensure Mongoose detects changes
+    player.markModified("soldAmount");
+    player.markModified("isSold");
+    player.markModified("soldTeam");
+
+    console.log("Updated Player object:", player);
+
+    // Save changes
+    await player.save();
+    await team.save();
+
+    return res.status(200).json({ message: "Bid successful", team });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error("Error in bid function:", error);
+    return res.status(500).json({ error: error.message });
   }
 };
+
+
+
+
   const fetchsets = async (req, res) => {
     console.log("in fetchsets");
     try {
