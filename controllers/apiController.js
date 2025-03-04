@@ -338,7 +338,7 @@ const createTeam = async (req, res) => {
     try {
       console.log("create team function");
   
-      const { teamID, teamMembers, initialPurse } = req.body;
+      const { teamID, teamMembers } = req.body;
   
       // Check if a team with the same teamID already exists
       console.log(teamID)
@@ -347,7 +347,7 @@ const createTeam = async (req, res) => {
       if (existingTeam) {
         // If the team exists, update its fields with the new data
         existingTeam.teamMembers = teamMembers;
-        existingTeam.initialPurse = initialPurse;
+        // existingTeam.initialPurse = initialPurse;
   
         const updatedTeam = await existingTeam.save();
         return res.status(200).send({ message: "Team updated successfully", team: updatedTeam });
