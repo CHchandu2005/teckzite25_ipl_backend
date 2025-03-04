@@ -71,7 +71,7 @@ const playerSchema = new mongoose.Schema({
     "bidplace":{
         type:Number,
     },
-    "fiftybyhundred":{
+    "ipl":{
         type:String,
     },
     "economy":{

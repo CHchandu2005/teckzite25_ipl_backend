@@ -239,7 +239,7 @@ const player = async (req, res) => {
       wickets,
       strikeRate,
       basePrice,
-      fiftybyhundred,
+      ipl,
       economy,
       average,
       bidplace,
@@ -293,7 +293,7 @@ const player = async (req, res) => {
         existingPlayer.strikeRate = strikeRate;
         existingPlayer.image = image; // Save Cloudinary URL
         existingPlayer.basePrice = basePrice;
-        existingPlayer.fiftybyhundred = fiftybyhundred;
+        existingPlayer.ipl = ipl;
         existingPlayer.economy = economy;
         existingPlayer.average = average;
         existingPlayer.bidplace = bidplace;
@@ -316,7 +316,7 @@ const player = async (req, res) => {
         strikeRate,
         image, // Save Cloudinary URL
         basePrice,
-        fiftybyhundred,
+        ipl,
         economy,
         average,
         bidplace,
@@ -734,14 +734,14 @@ player.wickets = playerData.wickets ? parseInt(playerData.wickets, 10) || 0 : 0;
 player.set = playerData["set no."] ? parseInt(playerData["set no."], 10) || (setno ? parseInt(setno, 10) : 0) : (setno ? parseInt(setno, 10) : 0);
 player.basePrice = playerData["base price"] ? parseInt(playerData["base price"], 10) || 50000 : 50000;
 player.bidplace = playerData["s.no"] ? parseInt(playerData["s.no"], 10) : undefined;
-player.setname = `set${player.set || (setname ? setname.toString() : "unknown")}`;
+player.setname = playerData.setname?playerData.setname.toString():(`set${player.set || (setname ? setname.toString() : "unknown")}`);
 player.role = playerData.specialism ? playerData.specialism.toLowerCase() : "unknown";
 player.strikeRate = playerData["strike rate"] ? playerData["strike rate"].toString() : "N/A";
 player.nationality = playerData.country ? playerData.country.toString() : "unknown";
-player.name = playerData["first name"] && playerData.surname ? `${playerData["first name"]} ${playerData.surname}` : "Unknown Player";
+player.name = playerData["first name"] && playerData.surname ? (`${playerData["first name"]} ${playerData.surname}`).toUpperCase() :(playerData["first name"]).toUpperCase();
 player.average = playerData.avg ? playerData.avg.toString() : "N/A";
-
-console.log("Player economy:", playerData.economy);
+console.log("ipl"+playerData.ipl)
+player.ipl=playerData.ipl?playerData.ipl.toString():"N/A";
 player.economy = playerData.economy ? playerData.economy.toString() : "N/A";
 
 // console.log("Single player data and row number:", player, rowNumber);
