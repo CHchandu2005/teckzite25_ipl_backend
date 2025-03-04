@@ -709,25 +709,6 @@ const addset = async (req, res) => {
         });
         const player = {};
 
-        // // Convert necessary fields to numbers and set defaults
-        // player.age = parseInt(playerData.age, 10) || 0;
-        // player.runs = parseInt(playerData.runs, 10) || 0;
-        // player.wickets = parseInt(playerData.wickets, 10) || 0;
-        // player.set = parseInt(playerData["set no."], 10) || (setno ? parseInt(setno, 10) : 0);
-        // player.basePrice = parseInt(playerData["base price"], 10) || 50000;
-        // player.bidplace = playerData["s.no"] ? parseInt(playerData["s.no"], 10) : undefined;
-        // player.setname = `set${playerData.set || (setname ? setname.toString() : "unknown")}`;
-        // player.role = playerData.specialism ? playerData.specialism.toLowerCase() : "unknown";
-        // player.strikeRate = playerData["strike rate"] ? playerData["strike rate"].toString() : "";
-        // player.nationality = playerData.country ? playerData.country.toString() : "unknown";
-        // player.name = `${playerData["first name"]} ${playerData.surname}`; // Static name assignment
-        // player.average = playerData.avg ? playerData.avg.toString() : "";
-        // console.log("Player economy:",playerData.economy);
-        // player.economy = playerData.economy?playerData.economy.toString():"NA";
-        // console.log("SIngle player data and row number:",player," ",rowNumber);
-
-
-        // Convert necessary fields to numbers and set defaults
 player.age = playerData.age ? parseInt(playerData.age, 10) || 0 : 0;
 player.runs = playerData.runs ? parseInt(playerData.runs, 10) || 0 : 0;
 player.wickets = playerData.wickets ? parseInt(playerData.wickets, 10) || 0 : 0;
