@@ -20,5 +20,6 @@ router.delete('/deleteTeam',authenticateAdmin,apiController.deleteTeam);
 router.delete('/deletePlayer',authenticateAdmin,apiController.deletePlayer);
 router.post('/createplayer',authenticateAdmin,upload.single('image'), apiController.player);
 router.post("/addset", authenticateAdmin, upload.single('excel'),apiController.addset);
-router.post("/unsold",apiController.unsold);
+router.post("/unsold",authenticateAdmin,apiController.unsold);
+router.post("/deleteplayerfromteam",authenticateAdmin,apiController.deleteplayerfromteam)
 module.exports = router;

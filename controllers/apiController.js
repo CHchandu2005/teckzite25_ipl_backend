@@ -362,7 +362,95 @@ const createTeam = async (req, res) => {
       res.status(400).send({ message: "Error creating or updating team", error: err });
     }
   };
-  
+//   const deleteplayerfromteam=async(req,res)=>{
+//       console.log("in del  player from team");
+//       try{
+// const {id}=req.body;
+// const player=await Player.findById(id);
+// if (!player) {
+//   return res.status(404).json({ error: "Player not found." });
+// }
+// const team=await Team.find({teamID:player.soldTeam});
+// if (!team) {
+//    return res.status(404).json({error:"Team not found"})
+//       }
+//       team.remainingPurse+=player.soldAmount;
+//        const role=player.role;
+//       if (role === "batsman") {
+//         console.log("batsman")
+//         team.batsmen -= 1;
+//       } else if (role === "bowler") {
+//         team.bowlers -= 1;
+//       } else if (role === "allrounder") {
+//         team.allrounder -= 1;
+//       } else if (role === "wicketkeeper") {
+//         team.wicketkeeper -= 1;
+//       }
+//       await Team.updateOne({ teamID: player.soldTeam }, { $pull: { players: id } });
+//       player.isSold=false;
+//       player.inAuction=false;
+//       player.soldTeam=null;
+//       player.soldAmount=0;
+//       player.inaccelerate=false;
+
+//     }
+
+//   }
+const deleteplayerfromteam = async (req, res) => {
+  console.log("In delete player from team");
+
+  try {
+    const { id } = req.body;
+
+    // Find the player by ID
+    const player = await Player.findById(id);
+    if (!player) {
+      return res.status(404).json({ error: "Player not found." });
+    }
+
+    // Find the team associated with the player
+    const team = await Team.findOne({ teamID: player.soldTeam });
+    if (!team) {
+      return res.status(404).json({ error: "Team not found." });
+    }
+
+    // Update team's remaining purse
+    team.remainingPurse += player.soldAmount;
+
+    // Update team's player count based on role
+    const role = player.role;
+    if (role === "batsman") {
+      console.log("batsman");
+      team.batsmen -= 1;
+    } else if (role === "bowler") {
+      team.bowlers -= 1;
+    } else if (role === "allrounder") {
+      team.allrounder -= 1;
+    } else if (role === "wicketkeeper") {
+      team.wicketkeeper -= 1;
+    }
+
+    // Remove player from the team's players list
+    await Team.updateOne({ teamID: player.soldTeam }, { $pull: { players: id } });
+
+    // Reset player attributes
+    player.isSold = false;
+    player.inAuction = false;
+    player.soldTeam = null;
+    player.soldAmount = 0;
+    player.inaccelerate = false;
+
+    // Save updates
+    await player.save();
+    await team.save();
+
+    return res.status(200).json({ message: "Player removed from team successfully." });
+  } catch (error) {
+    console.error("Error removing player from team:", error);
+    return res.status(500).json({ error: "Internal server error." });
+  }
+};
+
 const bid = async (req, res) => {
   console.log("In bid function");
 
@@ -438,6 +526,80 @@ const bid = async (req, res) => {
 
 
 
+  // const fetchsets = async (req, res) => {
+  //   console.log("in fetchsets");
+  //   try {
+  //     const setsWithPlayersAgg = await Player.aggregate([
+  //       { $match: { isSold: false, inAuction: false } },
+  //       { 
+  //         $group: { 
+  //           _id: "$set", 
+  //           setname: { $first: "$setname" } 
+  //         } 
+  //       }
+  //     ]);
+      
+
+  //     const setsWithoutPlayersAgg = await Player.aggregate([
+  //       {
+  //         $group: {
+  //           _id: "$set",
+  //           setname: { $first: "$setname" },
+  //           totalPlayers: { $sum: 1 },
+  //           matchingPlayers: {
+  //             $sum: {
+  //               $cond: [
+  //                 {
+  //                   $or: [
+  //                     { $eq: ["$isSold", true] },  
+  //                     { $and: [{ $eq: ["$isSold", false] }, { $eq: ["$inAuction", true] }] } 
+  //                   ]
+  //                 },
+  //                 1,
+  //                 0
+  //               ]
+  //             }
+  //           }
+  //         }
+  //       },
+  //       {
+  //         $match: {
+  //           $expr: { $eq: ["$totalPlayers", "$matchingPlayers"] } // Only keep sets where all players match the condition
+  //         }
+  //       }
+  //     ]);
+      
+     
+  //   console.log(setsWithPlayersAgg,setsWithoutPlayersAgg)
+      
+  //     const setsWithPlayers = setsWithPlayersAgg.map(doc => ({
+  //       set: doc._id,
+  //       setname: doc.setname
+  //     }));
+  //     const setsWithoutPlayers = setsWithoutPlayersAgg.map(doc => ({
+  //       set: doc._id,
+  //       setname: doc.setname
+  //     }));
+  
+      
+  //     const teams = await Team.find({}, 'teamID');
+  //     const teamnames = teams.map(team => team.teamID);
+  //     res.status(200).json({
+  //       // Arrays for sets that have unsold players.
+  //       setname: setsWithPlayers.map(item => item.setname), // e.g. ["Set One", "Set Two"]
+  //       set: setsWithPlayers.map(item => item.set),         // e.g. [1, 2]
+  
+  //       // Arrays for sets that do not have unsold players.
+  //       setwithoutplayers_set: setsWithoutPlayers.map(item => item.set),         // e.g. [3, 4]
+  //       setwithoutplayers_setname: setsWithoutPlayers.map(item => item.setname), // e.g. ["Set Three", "Set Four"]
+  
+  //       teamnames
+  //     });
+  //   } catch (error) {
+  //     console.error(error);
+  //     res.status(500).json({ message: "Failed to fetch sets" });
+  //   }
+  // };
   const fetchsets = async (req, res) => {
     console.log("in fetchsets");
     try {
@@ -450,8 +612,7 @@ const bid = async (req, res) => {
           } 
         }
       ]);
-      
-
+  
       const setsWithoutPlayersAgg = await Player.aggregate([
         {
           $group: {
@@ -480,30 +641,42 @@ const bid = async (req, res) => {
           }
         }
       ]);
-      
-     
-    console.log(setsWithPlayersAgg,setsWithoutPlayersAgg)
-      
-      const setsWithPlayers = setsWithPlayersAgg.map(doc => ({
-        set: doc._id,
-        setname: doc.setname
-      }));
-      const setsWithoutPlayers = setsWithoutPlayersAgg.map(doc => ({
+  
+      console.log(setsWithPlayersAgg, setsWithoutPlayersAgg);
+  
+      // Convert aggregation results to structured arrays
+      let setsWithPlayers = setsWithPlayersAgg.map(doc => ({
         set: doc._id,
         setname: doc.setname
       }));
   
-      
+      let setsWithoutPlayers = setsWithoutPlayersAgg.map(doc => ({
+        set: doc._id,
+        setname: doc.setname
+      }));
+  
+      // Sort the sets by numerical order if setnames contain numbers
+      const sortBySetNumber = (a, b) => {
+        const numA = parseInt(a.setname.replace(/\D/g, ""), 10) || 0; // Extract number from "Set 1"
+        const numB = parseInt(b.setname.replace(/\D/g, ""), 10) || 0;
+        return numA - numB;
+      };
+  
+      setsWithPlayers.sort(sortBySetNumber);
+      setsWithoutPlayers.sort(sortBySetNumber);
+  
+      // Fetch team names
       const teams = await Team.find({}, 'teamID');
       const teamnames = teams.map(team => team.teamID);
-      res.status(200).json({
-        // Arrays for sets that have unsold players.
-        setname: setsWithPlayers.map(item => item.setname), // e.g. ["Set One", "Set Two"]
-        set: setsWithPlayers.map(item => item.set),         // e.g. [1, 2]
   
-        // Arrays for sets that do not have unsold players.
-        setwithoutplayers_set: setsWithoutPlayers.map(item => item.set),         // e.g. [3, 4]
-        setwithoutplayers_setname: setsWithoutPlayers.map(item => item.setname), // e.g. ["Set Three", "Set Four"]
+      res.status(200).json({
+        // Sorted arrays for sets that have unsold players.
+        setname: setsWithPlayers.map(item => item.setname), 
+        set: setsWithPlayers.map(item => item.set),
+  
+        // Sorted arrays for sets that do not have unsold players.
+        setwithoutplayers_set: setsWithoutPlayers.map(item => item.set),       
+        setwithoutplayers_setname: setsWithoutPlayers.map(item => item.setname), 
   
         teamnames
       });
@@ -512,7 +685,7 @@ const bid = async (req, res) => {
       res.status(500).json({ message: "Failed to fetch sets" });
     }
   };
-
+  
   
 
 const deleteTeam = async (req, res) => {
@@ -857,4 +1030,4 @@ const getTeaminfo = async (req, res) => {
 
 
 
-module.exports = {getplayers,playersToBuy,accelerateplayers,soldPlayers,getTeams,player,createTeam,bid,deleteTeam,deletePlayer,getteamplayers,addset,fetchsets,unsold,playerinfo,getTeaminfo};
+module.exports = {deleteplayerfromteam,getplayers,playersToBuy,accelerateplayers,soldPlayers,getTeams,player,createTeam,bid,deleteTeam,deletePlayer,getteamplayers,addset,fetchsets,unsold,playerinfo,getTeaminfo};
